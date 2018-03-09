@@ -1,3 +1,22 @@
+<?php
+// コメントを変数に代入
+$comment = htmlspecialchars($_POST['comment']);
+
+//データベースに接続
+$dsn = 'mysql:dbname=hashchat;host=localhost';
+$user = 'root';
+$password = '';
+$dbh = new PDO($dsn, $user, $password);
+$dbh->query('SET NAMES utf8');
+
+//SQL文を実行
+$sql = "INSERT INTO comments SET comment='$comment'";
+$stmt = $dbh->prepare($sql);
+$stmt->execute();
+
+//データベースを切断
+$dbh = null;
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -17,12 +36,6 @@
       <div class="container">
           <!-- Brand and toggle get grouped for better mobile display -->
           <div class="navbar-header page-scroll">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                  <span class="sr-only">Toggle navigation</span>
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
-              </button>
               <a class="navbar-brand" href="#page-top"><span class="strong-title"><i class="fa fa-qrcode"></i> Hashchat</span></a>
           </div>
           <!-- Collect the nav links, forms, and other content for toggling -->
@@ -43,22 +56,14 @@
       <!-- 画面左側 -->
       <div class="col-md-4 content-margin-top">
         <!-- form部分 -->
-        <form action="bbs.php" method="post">
+        <form action="index.php" method="post">
           <!-- nickname -->
           <div class="form-group">
             <div class="input-group">
               <input type="text" name="comment" class="form-control" id="validate-text" placeholder="Write something..." required>
               <!--<span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>-->
             </div>
-          </div><br>
-          <!-- comment -->
-<!--           <div class="form-group">
-            <div class="input-group" data-validate="length" data-length="4">
-              <textarea type="text" class="form-control" name="comment" id="validate-length" placeholder="comment" required></textarea>
-              <span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>
-            </div>
-          </div> -->
-          <!-- つぶやくボタン <--><br>
+          </div><br><br>
           <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button>
         </form>
       </div>
