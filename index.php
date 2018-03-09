@@ -2,6 +2,20 @@
 // コメントを変数に代入
 $comment = htmlspecialchars($_POST['comment']);
 
+//ハッシュ値をクッキーに登録
+if (!isset($_COOKIE['hash'])) {
+$shortHash = function ($data, $algo = 'CRC32') {
+    return strtr(rtrim(base64_encode(pack('H*', $algo($data))), '='), '+/', '-_');
+};
+$hashCookie = $shortHash(md5(uniqid()));
+setcookie('hash', $hashCookie, time()+60*60*24*7);
+}
+$hash = $_COOKIE['hash'];
+
+//時間を取得
+date_default_timezone_set('Asia/Tokyo');
+$time = date("Y/m/d H:i:s");
+
 //データベースに接続
 $dsn = 'mysql:dbname=hashchat;host=localhost';
 $user = 'root';
@@ -10,12 +24,14 @@ $dbh = new PDO($dsn, $user, $password);
 $dbh->query('SET NAMES utf8');
 
 //SQL文を実行
-$sql = "INSERT INTO comments SET comment='$comment'";
+$sql = "INSERT INTO comments SET comment='$comment',hash='$hash', time='$time'";
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
 
-//データベースを切断
-$dbh = null;
+//一覧SQLを実行
+$sql = "SELECT * FROM comments";
+$stmt = $dbh->prepare($sql);
+$stmt->execute();
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -64,25 +80,33 @@ $dbh = null;
               <!--<span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>-->
             </div>
           </div><br><br>
-          <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button>
+          <!-- <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button> -->
         </form>
       </div>
 
       <!-- 画面右側 -->
       <div class="col-md-8 content-margin-top">
         <div class="timeline-centered">
+
+          <?php while (1): ?>
+          <?php   
+  $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+  if ($rec == false) {
+    break;
+  } ?>
           <article class="timeline-entry">
               <div class="timeline-entry-inner">
                   <div class="timeline-icon bg-success">
                       <i class="entypo-feather"></i>
-                      <i class="fa fa-cogs"></i>
+                      <?php echo $rec['id'] ?>
                   </div>
                   <div class="timeline-label">
-                      <h2><a href="#">seedくん</a> <span>2016-01-20</span></h2>
-                      <p>つぶやいたコメント</p>
+                      <h2><a href="#">Hash: <?php echo $rec['hash']; ?></a> <span><?php echo $rec['time'] ?></span></h2>
+                      <p><?php echo $rec['comment']; ?></p>
                   </div>
               </div>
           </article>
+          <?php endwhile; ?>
 
           <article class="timeline-entry begin">
               <div class="timeline-entry-inner">
@@ -97,6 +121,10 @@ $dbh = null;
     </div>
   </div>
 
+<?php
+//データベースを切断
+$dbh = null;
+?>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
