@@ -23,10 +23,14 @@ $password = '';
 $dbh = new PDO($dsn, $user, $password);
 $dbh->query('SET NAMES utf8');
 
+if ($comment) {
 //SQL文を実行
 $sql = "INSERT INTO comments SET comment='$comment',hash='$hash', time='$time'";
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
+
+header('Location: index.php');
+}
 
 //一覧SQLを実行
 $sql = "SELECT * FROM comments";
@@ -42,13 +46,14 @@ $stmt->execute();
   <!-- CSS -->
   <link rel="stylesheet" href="assets/css/bootstrap.css">
   <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.css">
+  <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/form.css">
   <link rel="stylesheet" href="assets/css/timeline.css">
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
   <!-- ナビゲーションバー -->
-  <nav class="navbar navbar-default navbar-fixed-top">
+  <div class="navbar navbar-default navbar-fixed-top">
       <div class="container">
           <!-- Brand and toggle get grouped for better mobile display -->
           <div class="navbar-header page-scroll">
@@ -62,61 +67,30 @@ $stmt->execute();
           <!-- /.navbar-collapse -->
       </div>
       <!-- /.container-fluid -->
-  </nav>
+  </div>
 
-  <!-- Bootstrapのcontainer -->
+
   <div class="container">
-    <!-- Bootstrapのrow -->
-    <div class="row">
+    <div class="col-lg-offset-2 col-lg-8">
 
-      <!-- 画面左側 -->
-      <div class="col-md-4 content-margin-top">
+          <?php while (1): ?>
+          <?php
+          $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+          if ($rec == false) {
+            break;
+          }
+          ?>
+          <div class="text"><span class="hash"><?php echo $rec['hash']; ?>:&nbsp;</span><?php echo $rec['comment']; ?><span class="date"><?php echo $rec['time'] ?></span></div>
+          <?php endwhile; ?>
+
         <!-- form部分 -->
         <form action="index.php" method="post">
-          <!-- nickname -->
           <div class="form-group">
             <div class="input-group">
               <input type="text" name="comment" class="form-control" id="validate-text" placeholder="Write something..." required>
-              <!--<span class="input-group-addon danger"><span class="glyphicon glyphicon-remove"></span></span>-->
             </div>
-          </div><br><br>
-          <!-- <button type="submit" class="btn btn-primary col-xs-12" disabled>つぶやく</button> -->
+          </div>
         </form>
-      </div>
-
-      <!-- 画面右側 -->
-      <div class="col-md-8 content-margin-top">
-        <div class="timeline-centered">
-
-          <?php while (1): ?>
-          <?php   
-  $rec = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($rec == false) {
-    break;
-  } ?>
-          <article class="timeline-entry">
-              <div class="timeline-entry-inner">
-                  <div class="timeline-icon bg-success">
-                      <i class="entypo-feather"></i>
-                      <?php echo $rec['id'] ?>
-                  </div>
-                  <div class="timeline-label">
-                      <h2><a href="#">Hash: <?php echo $rec['hash']; ?></a> <span><?php echo $rec['time'] ?></span></h2>
-                      <p><?php echo $rec['comment']; ?></p>
-                  </div>
-              </div>
-          </article>
-          <?php endwhile; ?>
-
-          <article class="timeline-entry begin">
-              <div class="timeline-entry-inner">
-                  <div class="timeline-icon" style="-webkit-transform: rotate(-90deg); -moz-transform: rotate(-90deg);">
-                      <i class="entypo-flight"></i> +
-                  </div>
-              </div>
-          </article>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -125,6 +99,7 @@ $stmt->execute();
 //データベースを切断
 $dbh = null;
 ?>
+
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
@@ -132,6 +107,3 @@ $dbh = null;
   <script src="assets/js/form.js"></script>
 </body>
 </html>
-
-
-

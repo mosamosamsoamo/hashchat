@@ -1,0 +1,17 @@
+.text {
+	background-color: black;
+	color: #fff;
+	border-radius: 4px;
+	padding: 5px 10px;
+	margin: 15px 0;
+}
+
+.hash {
+	color: #00ff00;
+}
+
+.date {
+	font-size: 10px;
+	float: right;
+	padding-top: 4px;
+}
